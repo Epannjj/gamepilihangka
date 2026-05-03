@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Game Cari Angka</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div id="info-header">Menunggu lawan...</div>
+        <button id="btn-restart" style="display: none;">MAIN LAGI (ACAK ULANG)</button>
+        
+        <div id="game-board"></div>
+
+        <div id="controls">
+            <div class="player-info">
+                <div class="label">SAYA: <span id="my-color">-</span></div>
+                <div class="score"><span id="my-score">0</span>/144</div>
+            </div>
+            
+            <button id="btn-action" disabled>TULIS (1s)</button>
+            
+            <div class="player-info">
+                <div class="label">LAWAN</div>
+                <div class="score"><span id="opp-score">0</span>/144</div>
+            </div>
+        </div>
+
+        <div id="grid-container">
+            <div id="my-grid" class="grid"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
