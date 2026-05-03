@@ -1,0 +1,56 @@
+* { box-sizing: border-box; touch-action: manipulation; }
+body { 
+    margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background: #fdf2f8; display: flex; justify-content: center; height: 100vh; overflow: hidden;
+}
+
+#app { width: 100%; max-width: 450px; display: flex; flex-direction: column; padding: 10px; }
+
+#info-header { 
+    text-align: center; padding: 12px; background: #be185d; color: white; 
+    font-weight: bold; border-radius: 8px; margin-bottom: 8px; font-size: 14px;
+}
+
+#btn-restart {
+    background: #2563eb; color: white; border: none; padding: 12px;
+    border-radius: 8px; font-weight: bold; margin-bottom: 8px; cursor: pointer;
+}
+
+#game-board { 
+    flex: 1; background: white; border: 3px solid #db2777; 
+    border-radius: 20px; position: relative; overflow: hidden; margin-bottom: 10px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+
+.num { 
+    position: absolute; font-weight: bold; font-size: 18px; 
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.1s;
+}
+.num:active { transform: scale(1.4); }
+
+.found-red { border: 3px solid red; border-radius: 50%; color: red; }
+.found-blue { border: 3px solid blue; border-radius: 50%; color: blue; }
+
+#controls { 
+    display: flex; justify-content: space-between; align-items: center; 
+    background: white; padding: 10px; border-radius: 12px; margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.player-info { font-size: 12px; text-align: center; font-weight: bold; }
+
+#btn-action { 
+    padding: 12px 24px; border: none; border-radius: 8px; 
+    background: #059669; color: white; font-weight: bold; font-size: 14px;
+}
+#btn-action:disabled { background: #9ca3af; opacity: 0.7; }
+
+#grid-container { display: flex; justify-content: center; }
+.grid { 
+    display: grid; grid-template-columns: repeat(12, 1fr); 
+    gap: 1px; background: #ddd; border: 1px solid #ccc; width: 200px;
+}
+.grid div { aspect-ratio: 1/1; background: white; }
+.fill-red { background: red !important; }
+.fill-blue { background: blue !important; }
