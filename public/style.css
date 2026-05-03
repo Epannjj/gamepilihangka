@@ -37,6 +37,31 @@ button:disabled { background: #ccc !important; opacity: 0.5; }
     background: #2563eb; color: white; border: none; padding: 12px;
     border-radius: 8px; font-weight: bold; margin-bottom: 8px; cursor: pointer;
 }
+/* TAMBAHAN UNTUK KOLOM KETIK */
+#input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+#num-input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #059669;
+    border-radius: 8px;
+    font-size: 16px;
+    text-align: center;
+    font-weight: bold;
+}
+#btn-submit-num {
+    padding: 12px 20px;
+    background: #059669;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
 
 #game-board { 
     flex: 1; background: white; border: 3px solid #db2777; 
