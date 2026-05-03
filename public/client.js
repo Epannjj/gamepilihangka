@@ -1,32 +1,45 @@
 const socket = io();
 let myId, myColor, role, currentTarget, lastClick = 0;
 
+const setupScreen = document.getElementById('setup-screen');
+const gameScreen = document.getElementById('game-screen');
 const header = document.getElementById('info-header');
 const btnAction = document.getElementById('btn-action');
-const btnRestart = document.getElementById('btn-restart');
 const board = document.getElementById('game-board');
 const myGrid = document.getElementById('my-grid');
 
-// Inisialisasi Grid 12x12
+// Init grid
+myGrid.innerHTML = '';
 for(let i=0; i<144; i++) myGrid.innerHTML += '<div></div>';
 
-socket.on('init', d => {
-    myId = d.id;
-    myColor = d.color;
-    document.getElementById('my-color').innerText = d.color.toUpperCase();
-    document.getElementById('my-color').style.color = d.color;
+function pick(color) {
+    myColor = color;
+    socket.emit('pickColor', color);
+    document.getElementById('btn-red').disabled = true;
+    document.getElementById('btn-blue').disabled = true;
+    document.getElementById('setup-msg').innerText = "Warna dipilih: " + color.toUpperCase() + ". Menunggu lawan...";
+}
+
+socket.on('colorStatus', (takenColors) => {
+    if (takenColors.includes('red')) document.getElementById('btn-red').disabled = true;
+    if (takenColors.includes('blue')) document.getElementById('btn-blue').disabled = true;
 });
 
 socket.on('gameStart', d => {
-    btnAction.style.display = 'block';
-    btnRestart.style.display = 'none';
-    renderBoard(d.board);
+    myId = socket.id;
+    setupScreen.style.display = 'none';
+    gameScreen.style.display = 'flex';
+    document.getElementById('my-color-text').innerText = myColor.toUpperCase();
+    document.getElementById('my-color-text').style.color = myColor;
+    
+    renderBoard(d.board, d.state.foundNumbers);
     updateState(d.state);
 });
 
 socket.on('targetSet', n => {
     currentTarget = n;
-    header.innerText = (role === 'searcher') ? `CARI ANGKA: ${n}` : `LAWAN CARI: ${n}. KAMU TULIS!`;
+    header.innerText = (role === 'searcher') ? `CARI: ${n}` : `LAWAN CARI: ${n}. TULIS!`;
+    header.style.background = (role === 'searcher') ? "#2563eb" : "#be185d";
     if(role === 'writer') btnAction.disabled = false;
 });
 
@@ -39,45 +52,41 @@ socket.on('roleSwapped', d => {
 socket.on('updateScore', p => {
     const ids = Object.keys(p);
     const myData = p[myId];
-    const oppData = p[ids.find(id => id !== myId)];
+    const oppId = ids.find(id => id !== myId);
+    const oppData = p[oppId];
     
-    document.getElementById('my-score').innerText = myData.score;
-    document.getElementById('opp-score').innerText = oppData ? oppData.score : 0;
+    if(myData) document.getElementById('my-score').innerText = myData.score;
+    if(oppData) document.getElementById('opp-score').innerText = oppData.score;
     
     const boxes = myGrid.children;
     for(let i=0; i<144; i++) {
-        if(i < myData.score) boxes[i].className = `fill-${myColor}`;
-        else boxes[i].className = '';
+        boxes[i].className = (i < myData.score) ? `fill-${myColor}` : '';
     }
 });
 
 socket.on('gameOver', color => {
-    header.innerText = `GAME OVER! ${color.toUpperCase()} MENANG!`;
+    header.innerText = `PEMENANG: ${color.toUpperCase()}!`;
     header.style.background = color;
-    btnAction.style.display = 'none';
-    btnRestart.style.display = 'block';
+    btnAction.disabled = true;
 });
 
-socket.on('playerLeft', () => {
-    header.innerText = "Lawan keluar. Menunggu...";
-    board.innerHTML = '';
-});
+socket.on('playerLeft', () => { location.reload(); });
 
 function updateState(state) {
-    role = (state.writer === myId) ? 'writer' : 'searcher';
-    if(role === 'writer' && !state.targetNumber) {
-        btnAction.disabled = true;
-        setTimeout(() => {
-            let n = prompt("Sebutkan angka (1-60) untuk dicari lawan:");
-            if(n) socket.emit('setTarget', n);
-        }, 500);
-    } else if (role === 'searcher') {
-        btnAction.disabled = true;
-        header.innerText = state.targetNumber ? `CARI ANGKA: ${state.targetNumber}` : "Menunggu lawan panggil nomor...";
+    role = (state.writer === socket.id) ? 'writer' : 'searcher';
+    currentTarget = state.targetNumber;
+    btnAction.disabled = (role === 'searcher' || !currentTarget);
+
+    if(role === 'writer') {
+        header.innerText = !currentTarget ? "PILIH 1 ANGKA DI PAPAN!" : `LAWAN CARI: ${currentTarget}. TULIS!`;
+        header.style.background = !currentTarget ? "#059669" : "#be185d";
+    } else {
+        header.innerText = !currentTarget ? "MENUNGGU LAWAN PILIH ANGKA..." : `CARI: ${currentTarget}!`;
+        header.style.background = !currentTarget ? "#6b7280" : "#2563eb";
     }
 }
 
-function renderBoard(nums) {
+function renderBoard(nums, found) {
     board.innerHTML = '';
     nums.forEach(item => {
         const d = document.createElement('div');
@@ -86,8 +95,12 @@ function renderBoard(nums) {
         d.innerText = item.num;
         d.style.top = item.top;
         d.style.left = item.left;
+        if(found[item.num]) d.classList.add(`found-${found[item.num]}`);
+        
         d.onclick = () => {
-            if(role === 'searcher' && item.num == currentTarget) {
+            if(role === 'writer' && !currentTarget && !d.classList.contains('found-red') && !d.classList.contains('found-blue')) {
+                socket.emit('setTarget', item.num);
+            } else if(role === 'searcher' && item.num == currentTarget) {
                 socket.emit('foundIt', item.num);
             }
         };
@@ -97,7 +110,7 @@ function renderBoard(nums) {
 
 btnAction.onclick = () => {
     const now = Date.now();
-    if(role === 'writer' && now - lastClick >= 1000) {
+    if(role === 'writer' && currentTarget && now - lastClick >= 1000) {
         lastClick = now;
         socket.emit('fillBox');
         btnAction.disabled = true;
@@ -105,6 +118,6 @@ btnAction.onclick = () => {
     }
 };
 
-btnRestart.onclick = () => {
-    socket.emit('restartGame');
-};
+function resetGame() {
+    socket.emit('requestReset');
+}
